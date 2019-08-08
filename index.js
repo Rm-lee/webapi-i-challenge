@@ -25,7 +25,11 @@ server.post('/api/users', (req,res) => {
    db.insert(newUser)
    
    .then(id => {
-    res.status(201).json(id)   
+     db.findById(id.id)
+     .then(hub => {
+      res.status(201)
+      res.json(hub)
+     })   
  })
    .catch(err => {
     res.status(404).json({
@@ -62,7 +66,7 @@ server.get('/api/users/:id', (req,res) => {
 })
 
 
-//DELETE user
+//DELETE api/user/id
 server.delete('/api/users/:id',(req,res) => {
  const {id} = req.params
  db.remove(id)
@@ -82,6 +86,36 @@ server.delete('/api/users/:id',(req,res) => {
   })
  })
 })
+
+//PUT /api/user/id
+server.put('/api/users/:id',(req,res) => {
+ const {id} = req.params
+ const updates = req.body
+ if(req.body.name && req.body.bio){ 
+    db.update(id, updates)
+    .then(modified => {
+     if(modified){
+      res.json(modified)
+     }
+     else{
+      res.status(404).json({
+       message: "The user with the specified ID does not exist."
+       })
+      }
+     })
+     .catch(err => {
+      res.status(500).json({
+       error: "The user information could not be modified."
+      })
+     })
+    }
+ else{
+  res.status(400).json({
+   errorMessage: "Please provide name and bio for the user."
+  })
+ }
+})
+
 // run server
 server.listen(4000, () => {
  console.log('server is running')
